@@ -1,4 +1,4 @@
-# Développeur mbw9: JWT Rookie
+# Developpeur mbw9: JWT Rookie
 
 ![Category](https://img.shields.io/badge/Category-Web-2563eb?style=flat-square)
 ![Bug](https://img.shields.io/badge/Bug-JWT%20alg%3Dnone-dc2626?style=flat-square)
@@ -174,4 +174,3 @@ Impact:
 | JWT algorithm trusted from header | Enforce allowed algorithms server-side |
 | Role stored client-side | Validate authorization server-side |
 | Unknown cookie name slowed exploitation | Use systematic cookie/endpoint testing |
-
