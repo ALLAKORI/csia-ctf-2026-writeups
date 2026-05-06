@@ -20,6 +20,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 | Web | L'Enigme du Code Apogee | Medium / Hard | Apache 2.4.49 traversal + RCE chain | [Read](web/enigme-code-apogee.md) |
 | Steganography | L3WILIL | 450 pts | LSB extraction from RGB bit plane + Base64 | [Read](steganography/l3wilil.md) |
 | Misc | QuadraSignals | Hard | Binary signal reconstruction from JSON measurements | [Read](misc/quadrasignals.md) |
+| OSINT | World of Sports | 450 pts | The Expanse lore and Mars location correlation | [Read](osint/world-of-sports.md) |
 | OSINT | The Hidden Archive | 500 pts | Split flag recovery from archive output and tweets JSON | [Read](osint/the-hidden-archive.md) |
 
 ## Repository Structure
@@ -29,7 +30,8 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 |-- misc/
 |   `-- quadrasignals.md
 |-- osint/
-|   `-- the-hidden-archive.md
+|   |-- the-hidden-archive.md
+|   `-- world-of-sports.md
 |-- steganography/
 |   `-- l3wilil.md
 |-- web/
