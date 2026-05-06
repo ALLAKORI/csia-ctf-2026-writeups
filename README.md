@@ -13,6 +13,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 
 | Category | Challenge | Difficulty / Points | Core idea | Writeup |
 | --- | --- | --- | --- | --- |
+| Web | no_internet | Easy | Page source inspection and `CSIA` search | [Read](web/no-internet.md) |
 | Web | Developpeur mbw9: JWT Rookie | Rookie | JWT `alg=none` auth bypass and cookie discovery | [Read](web/jwt-rookie.md) |
 | Web | JWT Confusion | Medium | JWT `alg=none` to admin, then AES-CBC decrypt | [Read](web/jwt-confusion.md) |
 | Web | NodeJS Academy | Web | Prototype pollution to bypass admin checks | [Read](web/nodejs-academy-prototype-pollution.md) |
@@ -35,6 +36,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 |   |-- enigme-code-apogee.md
 |   |-- jwt-confusion.md
 |   |-- jwt-rookie.md
+|   |-- no-internet.md
 |   `-- nodejs-academy-prototype-pollution.md
 `-- README.md
 ```
