@@ -13,6 +13,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 
 | Category | Challenge | Difficulty / Points | Core idea | Writeup |
 | --- | --- | --- | --- | --- |
+| Web | Développeur mbw9: JWT Rookie | Rookie | JWT `alg=none` auth bypass and cookie discovery | [Read](web/jwt-rookie.md) |
 | Web | JWT Confusion | Medium | JWT `alg=none` to admin, then AES-CBC decrypt | [Read](web/jwt-confusion.md) |
 | Web | NodeJS Academy | Web | Prototype pollution to bypass admin checks | [Read](web/nodejs-academy-prototype-pollution.md) |
 | Web | L'Enigme du Code Apogee | Medium / Hard | Apache 2.4.49 traversal + RCE chain | [Read](web/enigme-code-apogee.md) |
@@ -33,6 +34,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 |-- web/
 |   |-- enigme-code-apogee.md
 |   |-- jwt-confusion.md
+|   |-- jwt-rookie.md
 |   `-- nodejs-academy-prototype-pollution.md
 `-- README.md
 ```
@@ -52,4 +54,3 @@ Each writeup follows the same structure:
 ## Disclaimer
 
 All content is from a CTF environment. Commands and techniques are documented for education, training and portfolio review only.
-
