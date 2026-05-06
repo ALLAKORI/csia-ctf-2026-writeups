@@ -85,7 +85,7 @@ I think
 
 This confirmed the reference to **The Expanse**.
 
-## 3. Understanding “Dusters”
+## 3. Understanding "Dusters"
 
 In **The Expanse**, people from Mars are commonly called:
 
@@ -135,4 +135,3 @@ CSIA{Valles_Marineris}
 | Multiple clues pointed to the same universe | Correlate hints instead of solving them separately |
 | `Dusters` narrowed the target to Mars | Nicknames can reveal location context |
 | Flag format required a place | Convert the final answer into the expected format |
-
