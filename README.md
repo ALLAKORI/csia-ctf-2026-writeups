@@ -3,7 +3,7 @@
 ![Event](https://img.shields.io/badge/Event-CSIA%20CTF%202026-111827?style=for-the-badge)
 ![Team](https://img.shields.io/badge/Team-GHOSTSHELL-0f766e?style=for-the-badge)
 ![Rank](https://img.shields.io/badge/Rank-1st%20Place-f59e0b?style=for-the-badge)
-![Focus](https://img.shields.io/badge/Focus-Web%20%7C%20Stego%20%7C%20Misc%20%7C%20OSINT-2563eb?style=for-the-badge)
+![Focus](https://img.shields.io/badge/Focus-Web%20%7C%20Reverse%20%7C%20Stego%20%7C%20Misc%20%7C%20OSINT-2563eb?style=for-the-badge)
 
 Professional writeups for challenges solved during **CSIA CTF 2026** with team **GHOSTSHELL**.
 
@@ -18,6 +18,7 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 | Web | JWT Confusion | Medium | JWT `alg=none` to admin, then AES-CBC decrypt | [Read](web/jwt-confusion.md) |
 | Web | NodeJS Academy | Web | Prototype pollution to bypass admin checks | [Read](web/nodejs-academy-prototype-pollution.md) |
 | Web | L'Enigme du Code Apogee | Medium / Hard | Apache 2.4.49 traversal + RCE chain | [Read](web/enigme-code-apogee.md) |
+| Reverse | Crackme Sequence | 500 pts | Numeric sequence analysis and delta decoding | [Read](reverse/crackme-sequence.md) |
 | Steganography | L3WILIL | 450 pts | LSB extraction from RGB bit plane + Base64 | [Read](steganography/l3wilil.md) |
 | Misc | QuadraSignals | Hard | Binary signal reconstruction from JSON measurements | [Read](misc/quadrasignals.md) |
 | OSINT | World of Sports | 450 pts | The Expanse lore and Mars location correlation | [Read](osint/world-of-sports.md) |
@@ -32,6 +33,8 @@ This repository is written as a portfolio artifact: each writeup shows the reaso
 |-- osint/
 |   |-- the-hidden-archive.md
 |   `-- world-of-sports.md
+|-- reverse/
+|   `-- crackme-sequence.md
 |-- steganography/
 |   `-- l3wilil.md
 |-- web/
