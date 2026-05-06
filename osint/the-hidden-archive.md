@@ -1,29 +1,41 @@
 # The Hidden Archive
 
-## Challenge Information
+![Category](https://img.shields.io/badge/Category-OSINT-0891b2?style=flat-square)
+![Points](https://img.shields.io/badge/Points-500-f59e0b?style=flat-square)
+![Technique](https://img.shields.io/badge/Technique-Archive%20Forensics-7c3aed?style=flat-square)
+![Data](https://img.shields.io/badge/Data-JSON%20Search-16a34a?style=flat-square)
 
-| Field | Value |
-| --- | --- |
-| Category | OSINT |
-| Challenge | The Hidden Archive |
-| Points | 500 |
+> Objective: reconstruct a split flag from archive output and social-data style JSON.
 
-Description:
+## Executive Summary
+
+The challenge description said that `CipherRaven` split the secret into two parts. The ZIP extraction output immediately leaked the second half of the flag, while `tweets.json` contained a message revealing the first half.
+
+The solve was based on correlating both pieces rather than exploiting a complex vulnerability.
+
+## Challenge Brief
 
 ```text
 We intercepted the data of a suspect known as CipherRaven.
 They hinted that they split their secret into two parts to avoid being discovered.
 ```
 
-The challenge provided a ZIP archive:
+Provided file:
 
 ```text
 CipherRaven_Data.zip
 ```
 
-The description already hinted that the flag was split into two pieces.
+## Investigation Path
 
-## Extracting the Archive
+| Step | Action | Evidence |
+| --- | --- | --- |
+| 1 | Extract ZIP | Archive output leaked part 2 |
+| 2 | Inspect extracted file | `tweets.json` recovered |
+| 3 | Search suspicious keywords | Tweet revealed part 1 |
+| 4 | Combine both fragments | Full CSIA flag reconstructed |
+
+## 1. Archive Extraction
 
 ```bash
 unzip CipherRaven_Data.zip
@@ -37,51 +49,38 @@ Here is the rest of what you are looking for: d4t4_l34ks_99}
 inflating: tweets.json
 ```
 
-This immediately revealed the second half of the flag:
+Recovered second part:
 
 ```text
 d4t4_l34ks_99}
 ```
 
-The archive also extracted:
+## 2. JSON Investigation
 
-```text
-tweets.json
-```
-
-## Investigating tweets.json
-
-I searched for suspicious keywords:
+I searched for terms related to the challenge description:
 
 ```bash
 grep -iE "flag|CSIA|CipherRaven|secret|part|archive|leak|data|d4t4" tweets.json
 ```
 
-Interesting result:
+Interesting hit:
 
 ```json
 "text": "They are onto me. I split the key just in case. Part 1 is CSIA{Tr4ck1ng_ ... The second part is attached to the container itself. Good luck finding it."
 ```
 
-This revealed the first part:
+Recovered first part:
 
 ```text
 CSIA{Tr4ck1ng_
 ```
 
-## Reconstructing the Flag
+## 3. Flag Reconstruction
 
-Part 1:
-
-```text
-CSIA{Tr4ck1ng_
-```
-
-Part 2:
-
-```text
-d4t4_l34ks_99}
-```
+| Fragment | Value |
+| --- | --- |
+| Part 1 | `CSIA{Tr4ck1ng_` |
+| Part 2 | `d4t4_l34ks_99}` |
 
 Combined:
 
@@ -95,9 +94,12 @@ CSIA{Tr4ck1ng_d4t4_l34ks_99}
 CSIA{Tr4ck1ng_d4t4_l34ks_99}
 ```
 
-## Key Takeaways
+## Lessons Learned
 
-- Archive output can contain useful hidden data.
-- OSINT-style challenges often require correlating multiple small clues.
-- Searching structured files for contextual keywords is a fast first step.
+| Observation | Lesson |
+| --- | --- |
+| Secret split into two pieces | Trust the challenge wording |
+| Archive extraction printed text | Terminal output is evidence |
+| JSON contained social messages | Search context words, not only `flag` |
+| Fragments were plain text | OSINT challenges reward correlation |
 

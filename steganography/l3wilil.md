@@ -1,28 +1,39 @@
 # L3WILIL
 
-## Challenge Information
+![Category](https://img.shields.io/badge/Category-Steganography-7c3aed?style=flat-square)
+![Points](https://img.shields.io/badge/Points-450-f59e0b?style=flat-square)
+![Technique](https://img.shields.io/badge/Technique-LSB%20RGB-2563eb?style=flat-square)
+![Tool](https://img.shields.io/badge/Tool-zsteg-16a34a?style=flat-square)
+
+> Objective: extract a hidden message from a PNG image using the hint to select the correct LSB bit plane.
+
+## Executive Summary
+
+The challenge provided a PNG image and a hint containing a suspicious `1`. Standard metadata and string checks did not reveal anything useful, so the next hypothesis was LSB steganography.
+
+Using `zsteg`, the payload appeared in `b1,rgb,lsb,xy`. The extracted data contained a short marker followed by Base64, which decoded directly to the flag.
+
+## Challenge Data
 
 | Field | Value |
 | --- | --- |
-| Category | Steganography |
-| Challenge | L3WILIL |
-| Points | 450 |
+| File | `challenge.png` |
+| Dimensions | `868 x 1156` |
+| Color mode | RGB, 8-bit/color |
+| Hint | `Tahya 1vice president mn 3nd lpresident` |
 
-Hint:
+## Extraction Flow
 
-```text
-Tahya 1vice président mn 3nd lprésident
-```
+| Step | Tool | Result |
+| --- | --- | --- |
+| File identification | `file` | Valid PNG image |
+| Metadata review | `exiftool` | Nothing suspicious |
+| String search | `strings` | No direct flag |
+| LSB scan | `zsteg -a` | Hidden Base64 found |
+| Payload extraction | `zsteg -E` | Encoded message recovered |
+| Decode | `base64 -d` | Flag recovered |
 
-The challenge provided a PNG image:
-
-```text
-challenge.png
-```
-
-## Initial Enumeration
-
-I started by identifying the file type:
+## 1. File Identification
 
 ```bash
 file challenge.png
@@ -34,62 +45,52 @@ Output:
 challenge.png: PNG image data, 868 x 1156, 8-bit/color RGB, non-interlaced
 ```
 
-## Metadata and Strings
-
-I checked the metadata:
+## 2. Metadata and Strings
 
 ```bash
 exiftool challenge.png
 ```
 
-There were no suspicious comments or embedded metadata.
-
-I also searched for obvious flag strings:
+No suspicious metadata or embedded comments were present.
 
 ```bash
 strings challenge.png | grep -i csia
 ```
 
-No direct result appeared.
+No direct flag appeared.
 
-At this point, the image format and the challenge hint suggested LSB steganography.
+## 3. Hint Interpretation
 
-## Understanding the Hint
-
-The hint contained:
+The hint:
 
 ```text
-1vice président
+Tahya 1vice president mn 3nd lpresident
 ```
 
-The `1` looked intentional. I interpreted it as a reference to bit 1, which pointed toward LSB extraction with a mode such as `b1`.
+The `1` looked intentional and suggested **bit 1**, which mapped naturally to a `zsteg` extraction mode such as `b1`.
 
-## Steganography Analysis
-
-I ran a full `zsteg` scan:
+## 4. LSB Discovery
 
 ```bash
 zsteg -a challenge.png
 ```
 
-The important result was:
+Important output:
 
 ```text
 b1,rgb,lsb,xy .. text: "44:Q1NJQXtsQjRCNF9DaDRGZXFfSzR5U2xlbV80bGlLMG19"
 ```
 
-This showed hidden data in:
+This gave the exact extraction path:
 
-- bit 1
-- RGB channels
-- LSB mode
-- XY pixel order
+| Parameter | Meaning |
+| --- | --- |
+| `b1` | bit plane 1 |
+| `rgb` | RGB channels |
+| `lsb` | least significant bit order |
+| `xy` | XY pixel traversal |
 
-The extracted content looked encoded.
-
-## Extracting the Payload
-
-I extracted the payload directly:
+## 5. Payload Extraction
 
 ```bash
 zsteg challenge.png -E b1,rgb,lsb,xy
@@ -101,9 +102,9 @@ Output:
 44:Q1NJQXtsQjRCNF9DaDRGZXFfSzR5U2xlbV80bGlLMG19
 ```
 
-The `44:` prefix appeared to be a marker or noise. The remaining part looked like Base64.
+The `44:` prefix looked like a marker. The remaining string was Base64.
 
-## Base64 Decoding
+## 6. Decoding
 
 ```bash
 echo 'Q1NJQXtsQjRCNF9DaDRGZXFfSzR5U2xlbV80bGlLMG19' | base64 -d
@@ -121,10 +122,12 @@ CSIA{lB4B4_Ch4Feq_K4ySlem_4liK0m}
 CSIA{lB4B4_Ch4Feq_K4ySlem_4liK0m}
 ```
 
-## Key Takeaways
+## Lessons Learned
 
-- The challenge used LSB steganography.
-- The payload was hidden in RGB channels.
-- The hint pointed to the correct bit plane.
-- The extracted data required a final Base64 decoding step.
+| Observation | Lesson |
+| --- | --- |
+| Clean metadata | Do not stop at `exiftool` |
+| Suspicious number in hint | Hints may point directly to bit planes |
+| `zsteg -a` found structured data | Full scans are useful before manual extraction |
+| Base64 after LSB | Stego challenges often stack encoding layers |
 

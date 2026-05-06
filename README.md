@@ -1,29 +1,55 @@
 # CSIA CTF 2026 Writeups
 
-Writeups from challenges solved during **CSIA CTF 2026** with team **GHOSTSHELL**.
+![Event](https://img.shields.io/badge/Event-CSIA%20CTF%202026-111827?style=for-the-badge)
+![Team](https://img.shields.io/badge/Team-GHOSTSHELL-0f766e?style=for-the-badge)
+![Rank](https://img.shields.io/badge/Rank-1st%20Place-f59e0b?style=for-the-badge)
+![Focus](https://img.shields.io/badge/Focus-Web%20%7C%20Stego%20%7C%20Misc%20%7C%20OSINT-2563eb?style=for-the-badge)
 
-Team result: **1st place**
+Professional writeups for challenges solved during **CSIA CTF 2026** with team **GHOSTSHELL**.
 
-## Categories
+This repository is written as a portfolio artifact: each writeup shows the reasoning path, the commands used, the vulnerability or encoding layer, and the final recovery step.
 
-| Category | Challenge | Main techniques |
-| --- | --- | --- |
-| Web | [JWT Confusion](web/jwt-confusion.md) | JWT `alg=none`, cookie manipulation, AES-CBC decryption |
-| Web | [NodeJS Academy](web/nodejs-academy-prototype-pollution.md) | Prototype pollution, access control bypass |
-| Web | [L'Enigme du Code Apogee](web/enigme-code-apogee.md) | Apache 2.4.49 CVE-2021-41773, RCE, backup leakage |
-| Steganography | [L3WILIL](steganography/l3wilil.md) | LSB steganography, zsteg, Base64 |
-| Misc | [QuadraSignals](misc/quadrasignals.md) | Signal decoding, binary extraction, Python scripting |
-| OSINT | [The Hidden Archive](osint/the-hidden-archive.md) | Archive inspection, JSON search, flag reconstruction |
+## Writeup Index
 
-## Notes
+| Category | Challenge | Difficulty / Points | Core idea | Writeup |
+| --- | --- | --- | --- | --- |
+| Web | JWT Confusion | Medium | JWT `alg=none` to admin, then AES-CBC decrypt | [Read](web/jwt-confusion.md) |
+| Web | NodeJS Academy | Web | Prototype pollution to bypass admin checks | [Read](web/nodejs-academy-prototype-pollution.md) |
+| Web | L'Enigme du Code Apogee | Medium / Hard | Apache 2.4.49 traversal + RCE chain | [Read](web/enigme-code-apogee.md) |
+| Steganography | L3WILIL | 450 pts | LSB extraction from RGB bit plane + Base64 | [Read](steganography/l3wilil.md) |
+| Misc | QuadraSignals | Hard | Binary signal reconstruction from JSON measurements | [Read](misc/quadrasignals.md) |
+| OSINT | The Hidden Archive | 500 pts | Split flag recovery from archive output and tweets JSON | [Read](osint/the-hidden-archive.md) |
 
-These writeups focus on methodology:
+## Repository Structure
 
-- initial reconnaissance
-- hypothesis building
-- exploitation or extraction steps
-- final flag recovery
-- key takeaways
+```text
+.
+|-- misc/
+|   `-- quadrasignals.md
+|-- osint/
+|   `-- the-hidden-archive.md
+|-- steganography/
+|   `-- l3wilil.md
+|-- web/
+|   |-- enigme-code-apogee.md
+|   |-- jwt-confusion.md
+|   `-- nodejs-academy-prototype-pollution.md
+`-- README.md
+```
 
-Some challenge infrastructure may no longer be online after the CTF.
+## Methodology Style
+
+Each writeup follows the same structure:
+
+| Section | Purpose |
+| --- | --- |
+| Executive summary | What the challenge was about and what solved it |
+| Attack path | High-level chain before the command details |
+| Technical walkthrough | Reproducible commands, scripts and observations |
+| Flag | Final recovered flag |
+| Lessons learned | Practical security takeaways |
+
+## Disclaimer
+
+All content is from a CTF environment. Commands and techniques are documented for education, training and portfolio review only.
 

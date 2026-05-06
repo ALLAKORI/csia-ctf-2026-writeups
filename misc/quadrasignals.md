@@ -1,34 +1,71 @@
 # QuadraSignals
 
-## Challenge Information
+![Category](https://img.shields.io/badge/Category-Misc-0f766e?style=flat-square)
+![Difficulty](https://img.shields.io/badge/Difficulty-Hard-dc2626?style=flat-square)
+![Technique](https://img.shields.io/badge/Technique-Binary%20Signal%20Decoding-2563eb?style=flat-square)
+![Language](https://img.shields.io/badge/Script-Python-f59e0b?style=flat-square)
 
-| Field | Value |
+> Objective: interpret logic-level signal measurements and reconstruct the hidden message as binary data.
+
+## Executive Summary
+
+The archive contained a JSON file with repeated signal measurements and a PDF schematic. The values were only `0` and `5`, strongly suggesting digital logic levels.
+
+After reviewing the signal behavior, `Signal_A` was selected as the useful stream. Mapping `5 -> 1` and `0 -> 0`, then grouping bits into bytes, produced the flag text.
+
+## Provided Files
+
+| File | Role |
 | --- | --- |
-| Category | Misc |
-| Difficulty | Hard |
+| `complex_secret_message.json` | Signal measurements |
+| `Design.pdf` | Schematic / interpretation hint |
 
-The challenge provided a compressed archive:
+## Signal Analysis
 
-```bash
-QuadraSignals.7z
+Example measurement:
+
+```json
+{
+  "Signal_A": 0,
+  "Signal_B": 5,
+  "Signal_C": 5,
+  "Signal_D": 0
+}
 ```
 
-After extraction:
+Digital interpretation:
+
+| Value | Bit |
+| --- | --- |
+| `0` | `0` |
+| `5` | `1` |
+
+## Attack Path
+
+| Step | Action | Result |
+| --- | --- | --- |
+| 1 | Extract archive | JSON + PDF recovered |
+| 2 | Inspect file types | Confirmed JSON data and PDF schematic |
+| 3 | Read PDF text | Signals, LEDs and logic gates referenced |
+| 4 | Inspect signal patterns | `Signal_A` selected |
+| 5 | Convert values to bits | Binary stream built |
+| 6 | Group into bytes | Message decoded |
+| 7 | Normalize flag format | CSIA flag accepted |
+
+## 1. Archive Extraction
 
 ```bash
 7z x QuadraSignals.7z
 ```
 
-The archive contained:
+Extracted files:
 
 ```text
 complex_secret_message.json
 Design.pdf
 ```
 
-## Initial Analysis
-
-I inspected both files:
+## 2. Initial Inspection
 
 ```bash
 file complex_secret_message.json Design.pdf
@@ -41,25 +78,7 @@ complex_secret_message.json: JSON text data
 Design.pdf: PDF document, version 1.3
 ```
 
-The JSON file contained signal measurements like:
-
-```json
-{
-  "Signal_A": 0,
-  "Signal_B": 5,
-  "Signal_C": 5,
-  "Signal_D": 0
-}
-```
-
-The values were only `0` and `5`, which suggested a binary encoding:
-
-- `0` means `0`
-- `5` means `1`
-
-## PDF Analysis
-
-I extracted text from the PDF:
+## 3. PDF Clue
 
 ```bash
 pdftotext Design.pdf - | cat
@@ -72,11 +91,9 @@ The schematic referenced:
 - logic gates
 - Arduino pins
 
-This confirmed that the signal values represented digital logic states.
+This confirmed that the values should be treated as digital states.
 
-## Finding the Useful Signal
-
-I inspected the first measurements:
+## 4. Finding the Payload Stream
 
 ```python
 import json
@@ -87,24 +104,18 @@ for i, row in enumerate(data[:10]):
     print(i, row)
 ```
 
-Observations:
+Observed behavior:
 
-- `Signal_C` was always `5`.
-- `Signal_A` and `Signal_B` were complementary.
-- `Signal_D` looked random.
+| Signal | Behavior |
+| --- | --- |
+| `Signal_A` | Clean changing bitstream |
+| `Signal_B` | Complementary to `Signal_A` |
+| `Signal_C` | Constant `5` |
+| `Signal_D` | Random-looking noise |
 
-This suggested that the payload was likely stored in one clean signal stream. I focused on `Signal_A`.
+`Signal_A` was the best candidate for the payload.
 
-## Extracting Bits
-
-I converted `Signal_A` values to binary:
-
-- `5` to `1`
-- `0` to `0`
-
-Then I grouped the resulting bitstream into bytes.
-
-## Solve Script
+## 5. Solver
 
 ```python
 import json
@@ -126,13 +137,13 @@ for i in range(0, len(bits), 8):
 print(flag)
 ```
 
-## Output
+Output:
 
 ```text
 HACKFURY{vINzWPvSNqSDHQdJBx7c3lPZvoAH7JofJJTM}
 ```
 
-The platform expected the flag in CSIA format, so the final flag was:
+The platform expected CSIA format:
 
 ```text
 CSIA{vINzWPvSNqSDHQdJBx7c3lPZvoAH7JofJJTM}
@@ -144,9 +155,12 @@ CSIA{vINzWPvSNqSDHQdJBx7c3lPZvoAH7JofJJTM}
 CSIA{vINzWPvSNqSDHQdJBx7c3lPZvoAH7JofJJTM}
 ```
 
-## Key Takeaways
+## Lessons Learned
 
-- Logic-level values can be treated as binary.
-- Visual design files may reveal how data should be interpreted.
-- Checking signal behavior quickly helps identify the real payload stream.
+| Observation | Lesson |
+| --- | --- |
+| Values were `0` and `5` only | Think digital logic |
+| PDF referenced signals and gates | Documentation files can define encoding rules |
+| One signal was constant | Not every provided stream is useful |
+| Complementary streams existed | Choose the cleanest stream and test byte grouping |
 
